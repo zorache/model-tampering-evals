@@ -1,0 +1,3 @@
+[submodule "attacks/gcg_and_autoprompt"]
+	path = attacks/gcg_and_autoprompt
+	url = https://github.com/zorache/llm-attacks.git
