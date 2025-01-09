@@ -13,7 +13,7 @@ from lm_eval.models.huggingface import HFLM
 
 from utils.jailbreak_utils import format_text, load_jb_dataset, evaluate_jailbreak_robustness, load_ultrachat
 from utils.utils import load_model, get_params, forward_with_cache, get_data
-
+import csv
 
 def finetune(
     model,
@@ -58,24 +58,16 @@ def finetune(
 
     num_batches = min( args.max_num_batches, min([len(f) for f in data_list_train]),)
 
-    if args.load_model_path:
-        import re
-        epoch_match = re.search(r'epoch-(\d+)', args.load_model_path)
-        start_epoch = int(epoch_match.group(1)) if epoch_match else 0
-    else:
-        start_epoch = 0
-    epochs_to_train = max(0, args.num_epoch - start_epoch)
 
-
-    for epoch in range(epochs_to_train):
-        current_epoch = start_epoch + epoch + 1
+    for epoch in range(args.num_epoch):
         
         save_name=args.model_name_or_path.split("/")[-1]
-        fine_tune_setting = f"{args.data_list_train[0]}_{f'lora-{args.lora_r}-{args.lora_alpha}' if args.lora else 'full'}_lr-{args.lr:.0e}_batch-{args.batch_size*args.grad_acc}_num-{args.max_num_batches*args.batch_size}_epoch-{epoch+1}"
-        print("fine_tune_setting",fine_tune_setting)
+        finetune_setting = get_finetune_setting(args, epoch+1)
+        # fine_tune_setting = f"{args.data_list_train[0]}_{f'lora-{args.lora_r}-{args.lora_alpha}' if args.lora else 'full'}_lr-{args.lr:.0e}_batch-{args.batch_size*args.grad_acc}_num-{args.max_num_batches*args.batch_size}_epoch-{epoch+1}"
+        print("finetune_setting",finetune_setting)
 
 
-        print(f"======= Epoch {current_epoch} =======")
+        print(f"======= Epoch {epoch + 1 } =======")
         with tqdm.tqdm(total=num_batches) as pbar:
             for idx in range(num_batches):
                 topic_idx = idx % len(data_list_train)   # index for the topic/datast
@@ -83,7 +75,7 @@ def finetune(
                 batch = data_list_train[topic_idx][batch_idx]
 
                 inputs = tokenizer(
-                    batch, return_tensors="pt", padding=True, truncation=True, max_length=args.max_length
+                    batch, return_tensors="pt", padding=True, truncation=True, max_length=args.max_len
                 ).to(model.device)
 
                 outputs = model(inputs.input_ids, labels = inputs.input_ids, attention_mask=inputs.attention_mask)
@@ -104,11 +96,11 @@ def finetune(
 
                 
 
-        if (epoch + 1) % args.save_freq == 0 or epoch == args.num_epoch - 1:
-            output_dir = f"{args.output_dir}/{fine_tune_setting}"
+        if (epoch + 1) % args.eval_freq == 0 or epoch == args.num_epoch - 1:
+            output_dir = f"{args.output_dir}/{finetune_setting}"
             os.makedirs(output_dir, exist_ok=True)
             if os.path.exists(f"{output_dir}/{save_name}.txt"):
-                print(f"Skipping eval - Finetune result file for {save_name} already exists.")
+                print(f"Skipping eval - Finetune result file for {save_name} epoch {epoch +1} already exists.")
                 continue
             else:
                 if "unlearning" in output_dir:
@@ -137,7 +129,7 @@ def finetune(
                     raise ValueError("Error: Not implemented")
 
             if args.save_model:
-                path = f"../../models/{save_name}/{fine_tune_setting}"
+                path = f"../../models/{save_name}/{finetune_setting}"
                 model.save_pretrained(path)
                 tokenizer.save_pretrained(path)
                 print(f"Saved model to {path}")
@@ -145,62 +137,87 @@ def finetune(
 
 
 
+def get_model_paths(args):
+    """Get list of model paths to process"""
+    if args.model_name_or_path:
+        return [args.model_name_or_path]
+    model_paths = []
+    csv_path = f'data/{args.type}_model_paths.csv'
+    with open(csv_path, 'r') as f:
+        reader = csv.reader(f)
+        for row in reader:
+            model_paths.append(row[0])
+    return model_paths
+
+
+def should_skip_model(model_path, args, finetune_setting):
+    """Determine if model should be completely skipped (all epochs done)"""
+    save_name = model_path.split("/")[-1]
+    result_path = f"{args.output_dir}/{finetune_setting}/{save_name}.txt"
+    
+    # Skip if results already exist
+    if os.path.exists(result_path):
+        print(f"Skipping - Finetune result file for {save_name} already exists.")
+        return True
+        
+    # Skip if model matches skip patterns
+    if args.skip:
+        for skip_pattern in args.skip.split(","):
+            if skip_pattern in save_name:
+                print(f"Skipping - manually skipping {skip_pattern}")
+                return True
+                
+    return False
+
+def get_finetune_setting(args, epoch):
+    return f"{args.data_list_train[0]}_{f'lora-{args.lora_r}-{args.lora_alpha}' if args.lora else 'full'}_lr-{args.lr:.0e}_batch-{args.batch_size*args.grad_acc}_num-{args.max_num_batches*args.batch_size}_epoch-{epoch}"
+    
+
+
 def get_args():
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--model_name_or_path", type=str, default=""
-    )
-    parser.add_argument(
-        "--output_dir", type=str, default=None
-    )
+    parser.add_argument("--seed", type=int, default=42, help="Seed")
+    parser.add_argument("--model_name_or_path", type=str, default="")
+    parser.add_argument("--output_dir", type=str, default=None)
+    parser.add_argument("--type", type=str, default="", choices=["unlearning","refusal"])
 
-    ### Data arguments
-    parser.add_argument(
-        "--data_list_train",
-        type=str,
-        default="",
-        help="Load comma separated train splits",
-    )
-    parser.add_argument(
-        "--data_list_val",
-        type=str,
-        default="",
-        help="Load comma separated val splits",
-    )
 
-    parser.add_argument("--lr", type=float, default=5e-5, help="Learning rate")
+    # Data arguments
+    parser.add_argument("--data_list_train", type=str, default="", help="Load comma separated train splits",)
+    parser.add_argument("--data_list_val", type=str, default="", help="Load comma separated val splits",)
     parser.add_argument("--min_len", type=int, default=0)
-    parser.add_argument("--max_len", type=int, default=2000, help ="Max length of number of batches")
-    parser.add_argument("--max_length", type=int, default=512, help ="Max length of batch")
+    parser.add_argument("--max_len", type=int, default=2000)
     parser.add_argument("--batch_size", type=int, default=4)
     parser.add_argument("--max_num_batches", type=int, default=80)
-    parser.add_argument("--seed", type=int, default=42, help="Seed")
-    parser.add_argument("--grad_acc", type=int, default=1, help="Grad accumulation steps")
 
-
+    
+    # Finetune configurations
     parser.add_argument("--layer_ids", type=str, default="-1", help="Comma separated layer to finetune. -1 will finetune all layers and parameters")
     parser.add_argument("--param_ids", type=str, default="6", help="Param to update for each layer")
-
     parser.add_argument("--lora", action="store_true", help="Using LoRA")
     parser.add_argument("--lora_r", type=int, default=64, help="")
     parser.add_argument("--lora_alpha", type=int, default=16, help="")
     parser.add_argument("--lora_dropout", type=float, default=0.05, help="")
-
+    parser.add_argument("--lr", type=float, default=5e-5, help="Learning rate")
+    parser.add_argument("--grad_acc", type=int, default=1, help="Grad accumulation steps")
     parser.add_argument("--num_epoch", type=int, default=1, help="")
+    parser.add_argument("--eval_freq", type=int, default=1, help="")
+    parser.add_argument("--save_model", action="store_true", help="Save finetuned model upon each eval")
 
-    parser.add_argument("--save_freq", type=int, default=1, help="")
-    parser.add_argument("--save_model", action="store_true", help="Save finetuned model")
-    parser.add_argument("--load_model_path", type=str, default=None, help="Path to the saved model to continue training")
+    parser.add_argument("--skip", type=str, default="",help="Comma separated skip patterns to skip models")
 
 
     args = parser.parse_args()
-    args.data_list_val = args.data_list_val.split(",")
     args.data_list_train = args.data_list_train.split(",")
+    args.data_list_val = args.data_list_val.split(",")
     args.layer_ids = [int(layer_id) for layer_id in args.layer_ids.split(",")]
     args.param_ids = [int(param_id) for param_id in args.param_ids.split(",")]
     return args 
+
+
+
 
 
 
@@ -213,18 +230,8 @@ if __name__ == "__main__":
     torch.manual_seed(SEED)
     np.random.seed(SEED)
 
-    if args.load_model_path:
-        # For continual training
-        print(f"Loading model from {args.load_model_path}")
-        if args.lora:
-            base_model, tokenizer = load_model(args.model_name_or_path)
-            model = PeftModel.from_pretrained(base_model, args.load_model_path)
-        else:
-            model, tokenizer = load_model(args.load_model_path)
-    else:
-        model, tokenizer = load_model(args.model_name_or_path)
 
-    # We load the train and val splits
+    model_paths = get_model_paths(args)
     if "harmful" in args.data_list_train[0]:
         data_list_train, data_list_val = load_jb_dataset(seed=args.seed,include_test_responses=True, batch_size=args.batch_size,rejected_pair=True)
     elif "ultra" in args.data_list_train[0]:
@@ -238,11 +245,17 @@ if __name__ == "__main__":
             args.max_len,
             args.batch_size,
         )
-        
-    finetune(
-        model,
-        tokenizer,
-        data_list_train,
-        data_list_val,
-        args,
-    )
+
+    for model_path in model_paths:
+        args.model_name_or_path = model_path
+        finetune_setting = get_finetune_setting(args, args.num_epoch)
+        if should_skip_model(args.model_name_or_path, args, finetune_setting):
+            continue
+        model, tokenizer = load_model(args.model_name_or_path)
+        finetune(
+            model,
+            tokenizer,
+            data_list_train,
+            data_list_val,
+            args,
+        )
