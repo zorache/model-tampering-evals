@@ -136,8 +136,6 @@ def finetune(
                 print(f"Saved model to {path}")
             
 
-
-
 def get_model_paths(args):
     """Get list of model paths to process"""
     if args.model_name_or_path:
@@ -170,10 +168,10 @@ def should_skip_model(model_path, args, finetune_setting):
                 
     return False
 
+
 def get_finetune_setting(args, epoch):
     return f"{args.data_list_train[0]}_{f'lora-{args.lora_r}-{args.lora_alpha}' if args.lora else 'full'}_lr-{args.lr:.0e}_batch-{args.batch_size*args.grad_acc}_num-{args.max_num_batches*args.batch_size}_epoch-{epoch}"
     
-
 
 def get_args():
     parser = argparse.ArgumentParser()
@@ -214,8 +212,6 @@ def get_args():
     args.layer_ids = [int(layer_id) for layer_id in args.layer_ids.split(",")]
     args.param_ids = [int(param_id) for param_id in args.param_ids.split(",")]
     return args 
-
-
 
 
 
