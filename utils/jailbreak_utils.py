@@ -9,7 +9,7 @@ if openai_api_key is None:
 
 
 def format_text(prompt, response=None):
-    # uses the llama3-8b-it template
+    # Uses the llama3-8b-it template
     # https://pytorch.org/torchtune/0.2/tutorials/chat.html
     system_prompt = "You are a helpful, respectful, and honest assistant."
     formatted_text =  (

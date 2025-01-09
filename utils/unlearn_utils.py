@@ -14,7 +14,6 @@ random.seed(0)
 
 
 
-
 class CustomDataset(Dataset):
     def __init__(self, forget_corpora, data_dir, min_len=50, max_len=2000):
         self.data = self.get_corpus_data(forget_corpora[0], data_dir, min_len, max_len)
