@@ -14,6 +14,7 @@ from lm_eval.models.huggingface import HFLM
 from utils.jailbreak_utils import format_text, load_jb_dataset, evaluate_jailbreak_robustness, load_ultrachat
 from utils.utils import load_model, get_params, forward_with_cache, get_data
 import csv
+import argparse
 
 def finetune(
     model,
@@ -175,8 +176,6 @@ def get_finetune_setting(args, epoch):
 
 
 def get_args():
-    import argparse
-
     parser = argparse.ArgumentParser()
     parser.add_argument("--seed", type=int, default=42, help="Seed")
     parser.add_argument("--model_name_or_path", type=str, default="")
