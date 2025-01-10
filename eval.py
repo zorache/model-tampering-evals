@@ -6,7 +6,7 @@ from utils.utils import load_model
 import json
 import csv
 import argparse
-from utils.jailbreak_data import format_text, load_jb_dataset, evaluate_jailbreak_robustness
+from utils.jailbreak_utils import format_text, load_jb_dataset, evaluate_jailbreak_robustness
 import numpy as np
 
 # Dictionary of prefixes used in transfer attack
