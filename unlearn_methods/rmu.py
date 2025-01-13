@@ -10,24 +10,8 @@ from transformers import AdamW
 import tqdm as tqdm
 
 from utils.utils import load_model, get_params, forward_with_cache, get_data
+from config.model_paths import RMUModelPath
 
-
-def get_rmu_path(args,epoch):
-    if "Llama" in args.model_name_or_path:
-        model_name = "llama3"
-    elif "zephyr" in args.model_name_or_path:
-        model_name = "zephyr"
-    else:
-        model_name = args.model_name_or_path
-
-    if args.lora:
-        tune_type = f"lora-{args.lora_r}-{args.lora_alpha}"
-    elif args.layer_ids != [1]:
-        tune_type = f"layer-{args.layer_ids[0]}-{args.layer_ids[1]}-{args.layer_ids[2]}"
-    else:
-        tune_type = "full"
-
-    return f"models/{model_name}_rmu_{tune_type}_alpha-{int(args.alpha[0])}_steer-{args.steering_coeffs}_lr-{args.lr}_batch-{args.batch_size}_epoch-{epoch+1}"
 
 
 
@@ -132,7 +116,8 @@ def run_rmu(
                     print(f"Topic {topic_idx} updated_retain_activations.norm=",torch.mean(updated_retain_activations.norm(dim=-1).mean(dim=1), dim=0).item())
                     print(f"Topic {topic_idx} frozen_retain_activations.norm=",torch.mean(frozen_retain_activations.norm(dim=-1).mean(dim=1), dim=0).item())
                 pbar.update(1)
-        path = get_rmu_path(args,epoch)
+        path = RMUModelPath.create_path(args,epoch+1)
+
         updated_model.save_pretrained(path)
         tokenizer.save_pretrained(path)
         print(f"Saved model to {path}")

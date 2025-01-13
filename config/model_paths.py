@@ -1,11 +1,14 @@
 from abc import ABC, abstractmethod
 
 class ModelPath(ABC):
+    @classmethod
+    def create_path(cls, args, epoch):
+        return cls(args).generate_path(epoch)
+
     def __init__(self, args):
         self.args = args
 
     def _get_tune_type(self):
-        """Common logic for determining tune type"""
         if self.args.lora:
             return f"lora-{self.args.lora_r}-{self.args.lora_alpha}"
         elif self.args.layer_ids != [1]:
@@ -14,12 +17,11 @@ class ModelPath(ABC):
             return "full"
 
     def _get_model_name(self):
-        """Common logic for extracting model name"""
         return self.args.model_name_or_path.split('/')[-1]
 
     @abstractmethod
     def generate_path(self, epoch):
-        """Each subclass must implement its own path generation logic"""
+        """Each subclass implements its own path generation logic"""
         pass
 
 class GAModelPath(ModelPath):
@@ -33,3 +35,14 @@ class RMUModelPath(ModelPath):
         model_name = self._get_model_name()
         tune_type = self._get_tune_type()
         return f"models/{model_name}_rmu_{tune_type}_alpha-{int(self.args.alpha[0])}_steer-{self.args.steering_coeffs}_lr-{self.args.lr:.0e}_batch-{self.args.batch_size}_epoch-{epoch}"
+
+
+
+class RepNoiseModelPath(ModelPath):
+    def generate_path(self, epoch):
+            model_name = self._get_model_name()
+            tune_type = self._get_tune_type()
+            return f"models/{model_name}_repnoise_{tune_type}_alpha-{args.alpha}_beta-{args.beta}_lr-{args.lr:.0e}_batch-{self.args.batch_size}_epoch-{epoch}"
+
+
+
