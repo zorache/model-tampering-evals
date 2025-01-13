@@ -1,4 +1,4 @@
-# Code for "Model Tampering Attacks Enables More Rigorous Evaluations of LLM Capabilities"
+# Model Tampering Attacks Enables More Rigorous Evaluations of LLM Capabilities
 
 [workshop paper](https://openreview.net/pdf?id=XmvgWEjkhG) appeared at the NeurIPS Safe GenAI workshop
 
