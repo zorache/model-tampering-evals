@@ -80,16 +80,19 @@ def extract_and_combine_summaries(root_dir, mapping_dict, model_prefix, output_f
             print(f"Summary file not found at {summary_path}, creating it...")
             results_dir = os.path.dirname(summary_path)
             df = create_summary(results_dir, results_dir)
-            df.to_csv(summary_path)
+            df.to_csv(summary_path,index=False)
             print(f"Created summary file at {summary_path}")
+            df = pd.read_csv(summary_path, index_col=0)
 
 
         filtered_df = df[df.index.to_series().str.startswith(tuple(model_prefix))]
+
 
         # Extract values while maintaining the order from model_prefix
         values = []
         for prefix in model_prefix:
             matching_rows = filtered_df[filtered_df.index.str.startswith(prefix)]
+
             values.append(matching_rows.iloc[0] if not matching_rows.empty else None)
 
         # Add the column with preserved order
