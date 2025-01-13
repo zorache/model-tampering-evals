@@ -3,7 +3,7 @@ We adapted the LLM-Attacks Codebase for the GCG and AutoPrompt attacks in our ex
 
 In addition to the original repo, this fork has the addition of:
 
-- an implementation of multi-prompt AutoPrompt attack
+- An implementation of multi-prompt AutoPrompt attack
 - Support for Llama-3 Chat Template
 - Support for no chat template
 - Support for attacks with the same target for multi-prompt
