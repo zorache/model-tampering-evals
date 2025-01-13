@@ -218,15 +218,14 @@ def run_repnoise(
                 retain_batch = retain_data_list[topic_idx][batch_idx]
 
                 # Unlearning loss
-                max_length = 512 if topic_idx == 0 else 768
                 unlearn_inputs = tokenizer(
-                    unlearn_batch, return_tensors="pt", padding=True, truncation=True, max_length=max_length
+                    unlearn_batch, return_tensors="pt", padding=True, truncation=True, max_length=args.max_len
                 ).to(model.device)
 
 
                 # Retain loss
                 retain_inputs = tokenizer(
-                    retain_batch, return_tensors="pt", padding=True, truncation=True, max_length=512
+                    retain_batch, return_tensors="pt", padding=True, truncation=True, max_length=args.max_len
                 ).to(model.device)
 
                 loss = rep_noise_loss(model, unlearn_inputs, retain_inputs, beta = args.beta, alpha = args.alpha)

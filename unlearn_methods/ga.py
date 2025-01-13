@@ -71,9 +71,8 @@ def run_ga(
                 retain_batch = retain_data_list[topic_idx][batch_idx]
 
                 # Unlearning loss
-                max_length = 512 if topic_idx == 0 else 768
                 unlearn_inputs = tokenizer(
-                    unlearn_batch, return_tensors="pt", padding=True, truncation=True, max_length=max_length
+                    unlearn_batch, return_tensors="pt", padding=True, truncation=True, max_length=args.max_len
                 ).to(updated_model.device)
 
 
@@ -83,7 +82,7 @@ def run_ga(
 
 
                 if args.loss_type == "grad-diff":
-                    retain_inputs = tokenizer(retain_batch, return_tensors="pt", padding=True, truncation=True, max_length=max_length
+                    retain_inputs = tokenizer(retain_batch, return_tensors="pt", padding=True, truncation=True, max_length=args.max_len
                     ).to(updated_model.device)
                     outputs = updated_model(retain_inputs.input_ids,labels=retain_inputs.input_ids, attention_mask=retain_inputs.attention_mask)
                     loss += outputs.loss

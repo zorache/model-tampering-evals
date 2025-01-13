@@ -67,9 +67,8 @@ def run_rmu(
                 retain_batch = retain_data_list[topic_idx][batch_idx]
 
                 # Unlearning loss
-                max_length = 512 if topic_idx == 0 else 768
                 unlearn_inputs = tokenizer(
-                    unlearn_batch, return_tensors="pt", padding=True, truncation=True, max_length=max_length
+                    unlearn_batch, return_tensors="pt", padding=True, truncation=True, max_length=args.max_len
                 ).to(updated_model.device)
 
                 updated_forget_activations = forward_with_cache(
@@ -82,7 +81,7 @@ def run_rmu(
 
                 # Retain loss
                 retain_inputs = tokenizer(
-                    retain_batch, return_tensors="pt", padding=True, truncation=True, max_length=512
+                    retain_batch, return_tensors="pt", padding=True, truncation=True, max_length=args.max_len
                 ).to(updated_model.device)
                 updated_retain_activations = forward_with_cache(
                     updated_model, retain_inputs, module=updated_module, no_grad=False
