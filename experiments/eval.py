@@ -48,7 +48,7 @@ def evaluate_model(model_path: str, args, config: EvalConfig) -> None:
     Evaluate a single model and save results.
     """
 
-    output_dir = config.get_output_path(args.type, args.method, args.attack_type)
+    output_dir = config.get_output_path(args.type, args.attack, args.attack_setting)
 
     os.makedirs(output_dir, exist_ok=True)
 
@@ -67,14 +67,14 @@ def evaluate_model(model_path: str, args, config: EvalConfig) -> None:
     model, tokenizer = load_model(model_path)
 
     suffix_or_prefix = None
-    if args.attack_type:
-        if args.type in PREFIX_DICT and args.attack_type in PREFIX_DICT[args.type]:
-            suffix_or_prefix = PREFIX_DICT[args.type][args.attack_type]["prefix"]
+    if args.attack_setting:
+        if args.type in PREFIX_DICT and args.attack_setting in PREFIX_DICT[args.type]:
+            suffix_or_prefix = PREFIX_DICT[args.type][args.attack_setting]["prefix"]
         else:
-            root_path = f"{config.attack_results_dir}/{args.type}/{args.attack_type}"
+            root_path = f"{config.attack_results_dir}/{args.type}/{args.attack_setting}"
             suffix_or_prefix = get_suffix_or_prefix(model_path, root_path)
     else:
-        root_path = f"{config.attack_results_dir}/{args.type}/{args.method}_1hr"
+        root_path = f"{config.attack_results_dir}/{args.type}/{args.attack}_1hr"
         suffix_or_prefix = get_suffix_or_prefix(model_path, root_path)
 
     if suffix_or_prefix is None:
@@ -135,7 +135,7 @@ def main(args):
             folders.extend(row[0] for row in csv.reader(f))
     else:
         folders.append(args.model)
-
+    print(f"{len(folders)} models to evaluate")
     for model_path in folders:
         evaluate_model(model_path, args, config)
 
@@ -145,10 +145,10 @@ if __name__ == "__main__":
     parser.add_argument('--type', type=str, default="",
                        choices=["unlearning", "refusal"],
                        help='type of evaluation')
-    parser.add_argument('--method', type=str, default="",
+    parser.add_argument('--attack', type=str, default="",
                        choices=["gcg", "autoprompt"],
-                       help='method of attack')
-    parser.add_argument('--attack_type', type=str, default="",
+                       help='attack of attack')
+    parser.add_argument('--attack_setting', type=str, default="",
                        help='type of attack (e.g., gcg_1, gcg_500steps )')
     parser.add_argument('--model', type=str, default="",
                        help='model path for eval')
