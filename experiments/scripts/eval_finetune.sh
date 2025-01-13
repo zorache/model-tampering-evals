@@ -8,7 +8,7 @@
 
 python attacks/tampering/finetune.py \
     --type unlearning \
-    --data_list_1 bio-remove-dataset \
+    --data_list_1 bio-retain-corpust \
     --num_examples 400 \
     --batch_size 8 \
     --grad_acc 1 \

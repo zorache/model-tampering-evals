@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=64.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "model-tampering-evals"
+version = "0.0.1"
+description = "Evaluation framework for model tampering and robustness"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {file = "LICENSE"}
+authors = [{name = "Zora Che", email = "zche@umd.edu"}]
+dependencies = [
+    "tqdm",
+    "numpy",
+    "torch==2.1.2",
+    "transformers==4.47.1",
+    "peft==0.11.1",
+    "pandas>=1.5.0",
+    "argparse>=1.4.0",
+    "fschat @ git+https://github.com/lm-sys/FastChat.git@8664268cf63237cda8954531bca2a3ba6d3c0e1d",
+    "strong_reject @ git+https://github.com/dsbowen/strong_reject.git@ad6df7d4c0c3e5a977cc0dcfed14957f6309f9a9",
+    "lm_eval @ git+https://github.com/zorache/lm-evaluation-harness.git@cc096c27edf44b1fcdb56a11c218a3633dead83a"
+]
+
+[project.optional-dependencies]
+dev = [
+    "black>=22.0.0",
+    "isort>=5.10.0",
+    "flake8>=4.0.0"
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+exclude = ["attacks/input_space/*"]
+
+[tool.black]
+line-length = 100
+target-version = ["py38"]
+
+[tool.isort]
+profile = "black"
+line_length = 100
+multi_line_output = 3
+
+[project.urls]
+Repository = "https://github.com/zorache/model-tampering-evals"
