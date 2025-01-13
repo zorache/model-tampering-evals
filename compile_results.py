@@ -1,8 +1,8 @@
 import os
 import csv
-import pandas as pd
-import argparse
 import ast
+import argparse
+import pandas as pd
 from config.results_config import EVALUATION_MAPPINGS
 
 
@@ -111,7 +111,6 @@ def extract_and_combine_summaries(root_dir, mapping_dict, model_prefix, output_f
 
 
 def main(args):
-
     model_prefix = []
     if not args.model:
         with open(f'data/{args.type}_model_paths.csv', 'r', encoding='utf-8') as f:
@@ -121,9 +120,7 @@ def main(args):
     print(f"{len(model_prefix)} models to create table for")
 
 
-
     extract_and_combine_summaries(args.root_dir, EVALUATION_MAPPINGS, model_prefix, args.output_file)
-
 
 
 
@@ -132,11 +129,6 @@ if __name__ == "__main__":
     parser.add_argument('--type', type=str, default="refusal",
                        choices=["unlearning", "refusal"],
                        help='type of evaluation')
-    # parser.add_argument('--attack', type=str, default="",
-    #                    choices=["gcg", "autoprompt"],
-    #                    help='attack of attack')
-    # parser.add_argument('--attack_setting', type=str, default="",
-    #                    help='type of attack (e.g., gcg_1, gcg_500steps )')
     parser.add_argument('--model', type=str, default="",
                        help='model path for table')
     parser.add_argument('--root_dir', type=str, default="attack_results",
