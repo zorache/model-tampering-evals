@@ -10,6 +10,7 @@ In addition to the original repo, this fork has the addition of:
 
 
 For unlearning robustness experiments, we conducted prefix finding attacks with no chat formatting
+
 For refusal robustness experiments, we conducted suffix finding attacks with Llama-3 chat formatting
 
 To run attacks, follow the set up of the repo, then
