@@ -7,7 +7,14 @@ class EvalConfig:
 
     # Base paths
     base_output_dir: str = "attack_results"
-    attack_results_dir: str = "attacks/input_space/llm_attacks/experiments/results"
+    #attack_results_dir: str = "/data/zora_che/llm-attacks/experiments/results"
+
+
+    attack_results_dirs= {
+        "gcg": "attacks/input_space/llm_attacks/experiments/results/gcg/",
+        "autoprompt": "attacks/input_space/llm_attacks/experiments/results/autoprompt",
+        "beast":""
+    }
 
     # Evaluation types
     eval_types = {
@@ -23,7 +30,7 @@ class EvalConfig:
     }
 
     def get_output_path(self, eval_type: str, attack_method: Optional[str] = None,
-                       attack_type: Optional[str] = None) -> str:
+                       attack_setting: Optional[str] = None) -> str:
         """
         Generate output directory path based on configuration.
         """
@@ -34,7 +41,7 @@ class EvalConfig:
 
         attack_path = f"{base}/input_space/{attack_method}"
 
-        if attack_type:
-            return f"{attack_path}/{attack_type}"
+        if attack_setting:
+            return f"{attack_path}/{attack_setting}"
 
         return f"{attack_path}/{attack_method}_1hr"
