@@ -71,10 +71,10 @@ def evaluate_model(model_path: str, args, config: EvalConfig) -> None:
         if args.type in PREFIX_DICT and args.attack_setting in PREFIX_DICT[args.type]:
             suffix_or_prefix = PREFIX_DICT[args.type][args.attack_setting]["prefix"]
         else:
-            root_path = f"{config.attack_results_dirs[args.attack]}/{args.attack_setting}"
+            root_path = f"{config.attack_results_dirs[args.attack]}/{args.type}/{args.attack_setting}"
             suffix_or_prefix = get_suffix_or_prefix(model_path, root_path)
     else:
-        root_path = f"{config.attack_results_dirs[args.attack]}/{args.attack}_1hr"
+        root_path = f"{config.attack_results_dirs[args.attack]}/{args.type}/{args.attack}_1hr"
         suffix_or_prefix = get_suffix_or_prefix(model_path, root_path)
 
     if suffix_or_prefix is None:

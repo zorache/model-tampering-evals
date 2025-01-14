@@ -11,8 +11,8 @@ class EvalConfig:
 
 
     attack_results_dirs= {
-        "gcg": "attacks/input_space/llm_attacks/experiments/results/gcg/",
-        "autoprompt": "attacks/input_space/llm_attacks/experiments/results/autoprompt",
+        "gcg": "attacks/input_space/llm_attacks/experiments/results",
+        "autoprompt": "attacks/input_space/llm_attacks/experiments/results",
         "beast":""
     }
 
