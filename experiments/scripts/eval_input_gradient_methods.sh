@@ -6,4 +6,4 @@
 #SBATCH --job-name eval-s
 
 
-python eval.py --type "refusal" --attack "gcg" --attack_setting "gcg_100steps"
+python experiments/eval.py --type "refusal" --attack "gcg" --attack_setting "gcg_100steps"

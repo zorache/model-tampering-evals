@@ -2,6 +2,8 @@ import os
 import sys
 sys.path.append(".")
 sys.path.append("..")
+import csv
+import argparse
 import numpy as np
 import torch
 from transformers import AdamW
@@ -13,8 +15,7 @@ from lm_eval.models.huggingface import HFLM
 
 from utils.jailbreak_utils import format_text, load_jb_dataset, evaluate_jailbreak_robustness, load_ultrachat
 from utils.utils import load_model, get_params, forward_with_cache, get_data
-import csv
-import argparse
+
 
 def finetune(
     model,
@@ -61,7 +62,7 @@ def finetune(
 
 
     for epoch in range(args.num_epoch):
-        
+
         save_name=args.model_name_or_path.split("/")[-1]
         finetune_setting = get_finetune_setting(args, epoch+1)
         # fine_tune_setting = f"{args.data_list_train[0]}_{f'lora-{args.lora_r}-{args.lora_alpha}' if args.lora else 'full'}_lr-{args.lr:.0e}_batch-{args.batch_size*args.grad_acc}_num-{args.max_num_batches*args.batch_size}_epoch-{epoch+1}"
@@ -82,7 +83,7 @@ def finetune(
                 outputs = model(inputs.input_ids, labels = inputs.input_ids, attention_mask=inputs.attention_mask)
 
                 # Update model
-                loss = outputs.loss  
+                loss = outputs.loss
                 loss = loss / args.grad_acc
                 loss.backward()
                 if (idx + 1) % args.grad_acc == 0 or idx == num_batches - 1:
@@ -95,7 +96,7 @@ def finetune(
                     print(f"loss: {loss.item():.4g} | param_change: {params[0].grad.abs().mean().item():.4g}")
                 pbar.update(1)
 
-                
+
 
         if (epoch + 1) % args.eval_freq == 0 or epoch == args.num_epoch - 1:
             output_dir = f"{args.output_dir}/{finetune_setting}"
@@ -134,7 +135,7 @@ def finetune(
                 model.save_pretrained(path)
                 tokenizer.save_pretrained(path)
                 print(f"Saved model to {path}")
-            
+
 
 def get_model_paths(args):
     """Get list of model paths to process"""
@@ -153,25 +154,25 @@ def should_skip_model(model_path, args, finetune_setting):
     """Determine if model should be completely skipped (all epochs done)"""
     save_name = model_path.split("/")[-1]
     result_path = f"{args.output_dir}/{finetune_setting}/{save_name}.txt"
-    
+
     # Skip if results already exist
     if os.path.exists(result_path):
         print(f"Skipping - Finetune result file for {save_name} already exists.")
         return True
-        
+
     # Skip if model matches skip patterns
     if args.skip:
         for skip_pattern in args.skip.split(","):
             if skip_pattern in save_name:
                 print(f"Skipping - manually skipping {skip_pattern}")
                 return True
-                
+
     return False
 
 
 def get_finetune_setting(args, epoch):
     return f"{args.data_list_train[0]}_{f'lora-{args.lora_r}-{args.lora_alpha}' if args.lora else 'full'}_lr-{args.lr:.0e}_batch-{args.batch_size*args.grad_acc}_num-{args.max_num_batches*args.batch_size}_epoch-{epoch}"
-    
+
 
 def get_args():
     parser = argparse.ArgumentParser()
@@ -189,7 +190,7 @@ def get_args():
     parser.add_argument("--batch_size", type=int, default=4)
     parser.add_argument("--max_num_batches", type=int, default=80)
 
-    
+
     # Finetune configurations
     parser.add_argument("--layer_ids", type=str, default="-1", help="Comma separated layer to finetune. -1 will finetune all layers and parameters")
     parser.add_argument("--param_ids", type=str, default="6", help="Param to update for each layer")
@@ -211,7 +212,7 @@ def get_args():
     args.data_list_val = args.data_list_val.split(",")
     args.layer_ids = [int(layer_id) for layer_id in args.layer_ids.split(",")]
     args.param_ids = [int(param_id) for param_id in args.param_ids.split(",")]
-    return args 
+    return args
 
 
 

@@ -21,6 +21,9 @@ cd model-tampering-evals
 git submodule init
 git submodule update
 
+
+conda install pytorch pytorch-cuda=12.1 -c pytorch -c nvidia  # change this line based on your cuda requirements for your compute set up
+
 pip install -e .
 ```
 

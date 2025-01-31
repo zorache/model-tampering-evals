@@ -6,4 +6,4 @@
 #SBATCH --job-name eval-b
 
 
-python eval.py --type "refusal"
+python experiments/eval.py --type "refusal"

@@ -113,7 +113,7 @@ def extract_and_combine_summaries(root_dir, mapping_dict, model_prefix, output_f
 def main(args):
     model_prefix = []
     if not args.model:
-        with open(f'data/{args.type}_model_paths.csv', 'r', encoding='utf-8') as f:
+        with open(f'../data/{args.type}_model_paths.csv', 'r', encoding='utf-8') as f:
             model_prefix.extend(row[0] for row in csv.reader(f))
     else:
         model_prefix= args.model.split(",")
@@ -131,7 +131,7 @@ if __name__ == "__main__":
                        help='type of evaluation')
     parser.add_argument('--model', type=str, default="",
                        help='model path for table')
-    parser.add_argument('--root_dir', type=str, default="attack_results",
+    parser.add_argument('--root_dir', type=str, default="../attack_results",
                        help='root directory path')
     parser.add_argument('--output_file', type=str, default="output.csv",
                        help='output file name')
